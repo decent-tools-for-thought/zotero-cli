@@ -1,4 +1,4 @@
-# Maintainer: Rick
+# Maintainer: Schmoho
 pkgname=zotero-client-sqlite-cli
 pkgver=0.1.0
 pkgrel=1
