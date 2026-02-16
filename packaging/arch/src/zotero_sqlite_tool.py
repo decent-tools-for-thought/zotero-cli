@@ -1,0 +1,1 @@
+/home/rick/Software/zotero-skill/packaging/arch/zotero_sqlite_tool.py
