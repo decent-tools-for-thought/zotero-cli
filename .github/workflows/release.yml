@@ -21,26 +21,33 @@ jobs:
         with:
           python-version: "3.13"
 
-      - name: Smoke test CLI help
-        run: python zotero-client-sqlite/scripts/zotero_sqlite_tool.py --help >/dev/null
-
-      - name: Build tagged source archive
+      - name: Validate tag matches project version
         run: |
-          version="${GITHUB_REF_NAME#v}"
-          mkdir -p dist
-          git archive \
-            --format=tar.gz \
-            --prefix="zotero-cli-${version}/" \
-            "${GITHUB_REF_NAME}" \
-            -o "dist/zotero-cli-${version}.tar.gz"
+          version="$(python -c 'import tomllib; print(tomllib.load(open("pyproject.toml", "rb"))["project"]["version"])')"
+          test "${GITHUB_REF_NAME}" = "v${version}"
+
+      - name: Build Python distributions
+        run: |
+          python -m pip install --upgrade build
+          python -m build
+
+      - name: Generate release checksums
+        run: |
           (
             cd dist
-            sha256sum "zotero-cli-${version}.tar.gz" > SHA256SUMS
+            sha256sum zotero_cli-* > SHA256SUMS
           )
+
+      - name: Smoke test built wheel
+        run: |
+          python -m venv .release-venv
+          .release-venv/bin/python -m pip install --no-deps dist/*.whl
+          .release-venv/bin/zotero-sqlite-tool --help >/dev/null
 
       - name: Publish GitHub release
         uses: softprops/action-gh-release@v2
         with:
           files: |
-            dist/zotero-cli-*.tar.gz
+            dist/*.tar.gz
+            dist/*.whl
             dist/SHA256SUMS

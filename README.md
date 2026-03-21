@@ -4,7 +4,7 @@ Utilities and skill definitions for read-only querying of a local Zotero client 
 
 This repository currently includes:
 - A Codex skill: `zotero-client-sqlite/SKILL.md`
-- A Python CLI tool: `zotero-client-sqlite/scripts/zotero_sqlite_tool.py`
+- A Python CLI package with the `zotero-sqlite-tool` entry point
 
 ## What It Does
 
@@ -59,9 +59,10 @@ uv run zotero-sqlite-tool pdf-positions --item-key "QWERTY12"
 
 ## Releases
 
-Tagging `v<version>` publishes a source archive built from the tagged commit:
+Tagging `v<version>` publishes Python distribution artifacts built from the tagged commit:
 
-- `zotero-cli-<version>.tar.gz`
+- `zotero_cli-<version>.tar.gz`
+- `zotero_cli-<version>-py3-none-any.whl`
 - `SHA256SUMS`
 
 ## Safety
