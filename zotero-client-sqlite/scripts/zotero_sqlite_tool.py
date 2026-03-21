@@ -712,7 +712,7 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--library-id", type=int, help="Limit to one libraryID")
     parser.add_argument("--text", action="store_true", help="Print compact text output instead of JSON")
 
-    sub = parser.add_subparsers(dest="command", required=True)
+    sub = parser.add_subparsers(dest="command")
 
     sub.add_parser("locate-db", help="Detect zotero.sqlite candidates")
 
@@ -797,6 +797,9 @@ def run(args: argparse.Namespace) -> Dict[str, Any]:
 def main() -> int:
     parser = build_parser()
     args = parser.parse_args()
+    if args.command is None:
+        parser.print_help()
+        return 0
 
     try:
         data = run(args)
