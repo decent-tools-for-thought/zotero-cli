@@ -5,7 +5,6 @@ Utilities and skill definitions for read-only querying of a local Zotero client 
 This repository currently includes:
 - A Codex skill: `zotero-client-sqlite/SKILL.md`
 - A Python CLI tool: `zotero-client-sqlite/scripts/zotero_sqlite_tool.py`
-- Arch packaging files: `packaging/arch/`
 
 ## What It Does
 
@@ -16,24 +15,31 @@ The CLI provides collection-scoped search and PDF annotation position extraction
 - Python 3
 - A local Zotero database (`zotero.sqlite`)
 
+## Setup
+
+```bash
+uv sync
+uv run zotero-sqlite-tool --help
+```
+
 ## Usage
 
 Run from this repository root:
 
 ```bash
-python3 zotero-client-sqlite/scripts/zotero_sqlite_tool.py locate-db
+uv run zotero-sqlite-tool locate-db
 ```
 
 List collections:
 
 ```bash
-python3 zotero-client-sqlite/scripts/zotero_sqlite_tool.py list-collections --collection "machine learning"
+uv run zotero-sqlite-tool list-collections --collection "machine learning"
 ```
 
 Search items in a collection:
 
 ```bash
-python3 zotero-client-sqlite/scripts/zotero_sqlite_tool.py search-items \
+uv run zotero-sqlite-tool search-items \
   --collection "AB12CD34" \
   --include-subcollections \
   --query "retrieval augmented generation survey"
@@ -42,17 +48,21 @@ python3 zotero-client-sqlite/scripts/zotero_sqlite_tool.py search-items \
 Get PDF annotation positions for an item:
 
 ```bash
-python3 zotero-client-sqlite/scripts/zotero_sqlite_tool.py pdf-positions --item-key "QWERTY12"
+uv run zotero-sqlite-tool pdf-positions --item-key "QWERTY12"
 ```
 
 ### Environment Variables
 
 - `ZOTERO_DB_PATH`: absolute path to `zotero.sqlite`
 - `ZOTERO_DATA_DIR`: Zotero data directory (tool will look for `zotero.sqlite` inside it)
+- `zotero-client-sqlite/scripts/zotero_sqlite_tool.py ...` still works directly if you need the original path.
 
-## Install as Command
+## Releases
 
-You can install the script as `zotero-sqlite-tool` with the Arch package recipe in `packaging/arch/PKGBUILD`, or place/copy the script on your `PATH` and make it executable.
+Tagging `v<version>` publishes a source archive built from the tagged commit:
+
+- `zotero-cli-<version>.tar.gz`
+- `SHA256SUMS`
 
 ## Safety
 
