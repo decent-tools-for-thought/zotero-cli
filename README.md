@@ -1,59 +1,39 @@
 # zotero-cli
 
-Read-only tools for querying a local Zotero client database (`zotero.sqlite`).
+[![Release](https://img.shields.io/github/v/release/decent-tools-for-thought/zotero-cli?sort=semver)](https://github.com/decent-tools-for-thought/zotero-cli/releases)
+![Python](https://img.shields.io/badge/python-3.11%2B-blue)
+![License](https://img.shields.io/badge/license-0BSD-green)
 
-This repository currently includes:
-- A Codex skill: `zotero-client-sqlite/SKILL.md`
-- A Python CLI package with the `zotero-sqlite-tool` entry point
+Read-only command-line tools for querying a local Zotero database.
 
-## What It Does
+> [!IMPORTANT]
+> This codebase is largely AI-generated. It is useful to me, I hope it might be useful to others, and issues and contributions are welcome.
 
-The CLI provides collection-scoped search and PDF annotation position extraction from Zotero's local SQLite database, with a read-only connection mode.
+## Why This Exists
 
-## Requirements
-
-- Python 3.11+
-- A local Zotero database (`zotero.sqlite`)
+- Search a local `zotero.sqlite` without poking around manually.
+- List collections, search items, and extract PDF annotation positions.
+- Keep access read-only by default.
 
 ## Install
 
-For local development:
+From a checkout:
 
 ```bash
 uv sync
 uv run zotero-sqlite-tool --help
 ```
 
-For an isolated smoke install from a built artifact:
+From a built wheel:
 
 ```bash
-python -m build
-python -m venv .venv-smoke
-.venv-smoke/bin/python -m pip install --no-deps dist/*.whl
-.venv-smoke/bin/python -c "import zotero_sqlite_tool"
-.venv-smoke/bin/zotero-sqlite-tool --help
+python -m pip install dist/*.whl
+zotero-sqlite-tool --help
 ```
 
-## Database Detection
+## Quick Start
 
-The CLI resolves `zotero.sqlite` in this order:
-
-1. `--db-path`
-2. `ZOTERO_DB_PATH`
-3. `ZOTERO_DATA_DIR/zotero.sqlite`
-4. `~/Zotero/zotero.sqlite`
-5. `~/.zotero/zotero/*.default*/zotero.sqlite`
-6. `~/.var/app/org.zotero.Zotero/data/Zotero/zotero.sqlite`
-
-To inspect what the tool can currently detect:
-
-```bash
-uv run zotero-sqlite-tool locate-db
-```
-
-## Usage
-
-Run from this repository root:
+Locate the database:
 
 ```bash
 uv run zotero-sqlite-tool locate-db
@@ -65,30 +45,33 @@ List collections:
 uv run zotero-sqlite-tool list-collections --collection "machine learning"
 ```
 
-Search items in a collection:
+Search inside a collection:
 
 ```bash
 uv run zotero-sqlite-tool search-items \
   --collection "AB12CD34" \
   --include-subcollections \
-  --query "retrieval augmented generation survey"
+  --query "retrieval augmented generation"
 ```
 
-Get PDF annotation positions for an item:
+Extract PDF annotation positions:
 
 ```bash
 uv run zotero-sqlite-tool pdf-positions --item-key "QWERTY12"
 ```
 
-### Environment Variables
+## Database Resolution
 
-- `ZOTERO_DB_PATH`: absolute path to `zotero.sqlite`
-- `ZOTERO_DATA_DIR`: Zotero data directory (tool will look for `zotero.sqlite` inside it)
-- `zotero-client-sqlite/scripts/zotero_sqlite_tool.py ...` still works directly if you need the original path.
+The CLI resolves `zotero.sqlite` in this order:
 
-## Quality Checks
+1. `--db-path`
+2. `ZOTERO_DB_PATH`
+3. `ZOTERO_DATA_DIR/zotero.sqlite`
+4. `~/Zotero/zotero.sqlite`
+5. `~/.zotero/zotero/*.default*/zotero.sqlite`
+6. `~/.var/app/org.zotero.Zotero/data/Zotero/zotero.sqlite`
 
-The fast local verification loop is:
+## Development
 
 ```bash
 uv run ruff format src tests zotero-client-sqlite/scripts
@@ -97,26 +80,8 @@ uv run mypy
 uv run pytest
 ```
 
-Fixture databases for tests live under `tests/fixtures/` and can be regenerated with:
+Arch packaging notes live in [AUR_VALIDATION.md](AUR_VALIDATION.md).
 
-```bash
-python tests/fixtures/build_fixtures.py
-```
+## Credits
 
-## Releases
-
-Tagging `v<version>` publishes Python distribution artifacts built from the tagged commit:
-
-- `zotero_cli-<version>.tar.gz`
-- `zotero_cli-<version>-py3-none-any.whl`
-- `SHA256SUMS`
-
-## Safety
-
-This tool is intended for **read-only** access. It uses SQLite read-only mode and rejects non-`SELECT`/`WITH` statements.
-
-## Packaging Discipline
-
-Release CI verifies wheel and sdist installs, confirms the library imports, and checks the installed CLI entry point.
-
-For the Arch package validation routine, use [AUR_VALIDATION.md](AUR_VALIDATION.md).
+This tool is built for the local Zotero client database and is not affiliated with Zotero. Credit goes to the Zotero project for the application and data model this CLI builds on.
