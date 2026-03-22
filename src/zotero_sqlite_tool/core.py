@@ -10,7 +10,7 @@ import os
 import re
 import sqlite3
 import sys
-from typing import Any, Dict, Iterable, List, Optional, Sequence, Tuple
+from typing import Any, Dict, List, Optional, Sequence, Tuple
 
 KEY_PATTERN = re.compile(r"^[A-Z0-9]{8}$")
 HTML_TAG_PATTERN = re.compile(r"<[^>]+>")
@@ -92,7 +92,7 @@ class ZoteroSQLite:
         self.conn.execute("PRAGMA query_only = ON")
         self.conn.execute("PRAGMA foreign_keys = OFF")
         self._table_cache: Dict[str, bool] = {}
-        self._column_cache: Dict[str, set] = {}
+        self._column_cache: Dict[str, set[str]] = {}
 
     @staticmethod
     def _connect_read_only(path: str) -> sqlite3.Connection:
@@ -213,7 +213,9 @@ def get_collection_tree(db: ZoteroSQLite) -> List[sqlite3.Row]:
     return db.fetchall(sql)
 
 
-def resolve_collection(db: ZoteroSQLite, selector: Optional[str], library_id: Optional[int]) -> Optional[Dict[str, Any]]:
+def resolve_collection(
+    db: ZoteroSQLite, selector: Optional[str], library_id: Optional[int]
+) -> Optional[Dict[str, Any]]:
     if not selector:
         return None
 
@@ -229,7 +231,9 @@ def resolve_collection(db: ZoteroSQLite, selector: Optional[str], library_id: Op
         if len(exact_key) == 1:
             return exact_key[0]
         if len(exact_key) > 1:
-            raise ValueError(f"Collection key '{selector}' is ambiguous across libraries. Use --library-id.")
+            raise ValueError(
+                f"Collection key '{selector}' is ambiguous across libraries. Use --library-id."
+            )
 
     lower = selector.lower()
     exact_path = [r for r in filtered if (r.get("path") or "").lower() == lower]
@@ -243,7 +247,8 @@ def resolve_collection(db: ZoteroSQLite, selector: Optional[str], library_id: Op
     fuzzy = [
         r
         for r in filtered
-        if lower in (r.get("collectionName") or "").lower() or lower in (r.get("path") or "").lower()
+        if lower in (r.get("collectionName") or "").lower()
+        or lower in (r.get("path") or "").lower()
     ]
     if len(fuzzy) == 1:
         return fuzzy[0]
@@ -257,7 +262,9 @@ def resolve_collection(db: ZoteroSQLite, selector: Optional[str], library_id: Op
     raise ValueError(f"Collection '{selector}' not found.")
 
 
-def descendant_collection_ids(db: ZoteroSQLite, root_collection_id: int, include_subcollections: bool) -> List[int]:
+def descendant_collection_ids(
+    db: ZoteroSQLite, root_collection_id: int, include_subcollections: bool
+) -> List[int]:
     if not include_subcollections:
         return [root_collection_id]
     sql = """
@@ -289,14 +296,25 @@ def scoped_item_rows(
     if collection_ids:
         if not db.has_table("collectionItems"):
             raise ValueError("collectionItems table is required for collection-scoped search.")
-        where.append(f"i.itemID IN (SELECT itemID FROM collectionItems WHERE collectionID IN ({placeholders(collection_ids)}))")
+        where.append(
+            "i.itemID IN ("
+            "SELECT itemID FROM collectionItems "
+            f"WHERE collectionID IN ({placeholders(collection_ids)})"
+            ")"
+        )
         params.extend(collection_ids)
 
     base_where = " AND ".join(where) if where else "1=1"
 
     item_type_filter = ""
+    item_type_join = ""
+    item_type_expr = "'' AS itemType"
     if db.has_table("itemTypes"):
-        item_type_filter = "AND COALESCE(it.typeName, '') NOT IN ('attachment', 'note', 'annotation')"
+        item_type_join = "LEFT JOIN itemTypes it ON it.itemTypeID = i.itemTypeID"
+        item_type_expr = "COALESCE(it.typeName, '') AS itemType"
+        item_type_filter = (
+            "AND COALESCE(it.typeName, '') NOT IN ('attachment', 'note', 'annotation')"
+        )
 
     sql = f"""
     SELECT
@@ -306,9 +324,9 @@ def scoped_item_rows(
       i.itemTypeID,
       i.dateAdded,
       i.dateModified,
-      COALESCE(it.typeName, '') AS itemType
+      {item_type_expr}
     FROM items i
-    LEFT JOIN itemTypes it ON it.itemTypeID = i.itemTypeID
+    {item_type_join}
     WHERE {base_where}
       {item_type_filter}
     ORDER BY i.dateModified DESC
@@ -319,7 +337,11 @@ def scoped_item_rows(
 def fetch_titles(db: ZoteroSQLite, item_ids: List[int]) -> Dict[int, str]:
     if not item_ids:
         return {}
-    if not (db.has_table("itemData") and db.has_table("itemDataValues") and db.has_table("fieldsCombined")):
+    if not (
+        db.has_table("itemData")
+        and db.has_table("itemDataValues")
+        and db.has_table("fieldsCombined")
+    ):
         return {}
 
     sql = f"""
@@ -355,7 +377,11 @@ def fetch_metadata_text(db: ZoteroSQLite, item_ids: List[int]) -> Dict[int, Dict
     id_params: List[Any] = list(item_ids)
     in_clause = placeholders(item_ids)
 
-    if db.has_table("itemData") and db.has_table("itemDataValues") and db.has_table("fieldsCombined"):
+    if (
+        db.has_table("itemData")
+        and db.has_table("itemDataValues")
+        and db.has_table("fieldsCombined")
+    ):
         sql = f"""
         SELECT
           id.itemID,
@@ -373,7 +399,10 @@ def fetch_metadata_text(db: ZoteroSQLite, item_ids: List[int]) -> Dict[int, Dict
         sql = f"""
         SELECT
           ic.itemID,
-          group_concat(trim(coalesce(c.firstName, '') || ' ' || coalesce(c.lastName, '')), ' || ') AS text
+          group_concat(
+            trim(coalesce(c.firstName, '') || ' ' || coalesce(c.lastName, '')),
+            ' || '
+          ) AS text
         FROM itemCreators ic
         JOIN creators c ON c.creatorID = ic.creatorID
         WHERE ic.itemID IN ({in_clause})
@@ -489,10 +518,14 @@ def search_items(
     any_term: bool,
     limit: int,
 ) -> Dict[str, Any]:
-    collection = resolve_collection(db, collection_selector, library_id) if collection_selector else None
+    collection = (
+        resolve_collection(db, collection_selector, library_id) if collection_selector else None
+    )
     collection_ids = None
     if collection:
-        collection_ids = descendant_collection_ids(db, int(collection["collectionID"]), include_subcollections)
+        collection_ids = descendant_collection_ids(
+            db, int(collection["collectionID"]), include_subcollections
+        )
 
     items = scoped_item_rows(db, collection_ids, library_id)
     item_ids = [int(r["itemID"]) for r in items]
@@ -575,10 +608,14 @@ def resolve_parent_item_ids(
         )
         return [int(row["itemID"]) for row in search_data["results"]]
 
-    collection = resolve_collection(db, collection_selector, library_id) if collection_selector else None
+    collection = (
+        resolve_collection(db, collection_selector, library_id) if collection_selector else None
+    )
     collection_ids = None
     if collection:
-        collection_ids = descendant_collection_ids(db, int(collection["collectionID"]), include_subcollections)
+        collection_ids = descendant_collection_ids(
+            db, int(collection["collectionID"]), include_subcollections
+        )
 
     return [int(r["itemID"]) for r in scoped_item_rows(db, collection_ids, library_id)]
 
@@ -669,7 +706,9 @@ def pdf_positions(
     }
 
 
-def list_collections(db: ZoteroSQLite, selector: Optional[str], library_id: Optional[int], limit: int) -> Dict[str, Any]:
+def list_collections(
+    db: ZoteroSQLite, selector: Optional[str], library_id: Optional[int], limit: int
+) -> Dict[str, Any]:
     rows = [dict(r) for r in get_collection_tree(db)]
     if library_id is not None:
         rows = [r for r in rows if r["libraryID"] == library_id]
@@ -710,7 +749,9 @@ def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(description="Read-only Zotero sqlite helper")
     parser.add_argument("--db-path", help="Path to zotero.sqlite")
     parser.add_argument("--library-id", type=int, help="Limit to one libraryID")
-    parser.add_argument("--text", action="store_true", help="Print compact text output instead of JSON")
+    parser.add_argument(
+        "--text", action="store_true", help="Print compact text output instead of JSON"
+    )
 
     sub = parser.add_subparsers(dest="command")
 
@@ -724,7 +765,9 @@ def build_parser() -> argparse.ArgumentParser:
     search.add_argument("--query", required=True, help="Search query")
     search.add_argument("--collection", help="Collection key/name/path")
     search.add_argument("--include-subcollections", action="store_true")
-    search.add_argument("--any-term", action="store_true", help="Match any term (default: all terms)")
+    search.add_argument(
+        "--any-term", action="store_true", help="Match any term (default: all terms)"
+    )
     search.add_argument("--limit", type=int, default=100)
 
     pos = sub.add_parser("pdf-positions", help="Retrieve PDF annotation positions")

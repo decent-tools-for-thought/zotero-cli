@@ -10,8 +10,12 @@ SRC = ROOT / "src"
 if str(SRC) not in sys.path:
     sys.path.insert(0, str(SRC))
 
-from zotero_sqlite_tool.cli import main
+
+def _run() -> int:
+    from zotero_sqlite_tool.cli import main
+
+    return main()
 
 
 if __name__ == "__main__":
-    raise SystemExit(main())
+    raise SystemExit(_run())
