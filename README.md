@@ -14,11 +14,11 @@ Read-only command-line client for locating, browsing, and querying a local Zoter
 > This codebase is entirely AI-generated. It is useful to me, I hope it might be useful to others, and issues and contributions are welcome.
 
 ## Map
+$$\color{#0EA5E9}Tool \space \color{#14B8A6}Map$$
 - [Install](#install)
 - [Functionality](#functionality)
 - [Database Resolution](#database-resolution)
 - [Quick Start](#quick-start)
-- [Development](#development)
 - [Credits](#credits)
 
 ## Install
@@ -38,6 +38,7 @@ zotero-sqlite-tool --help
 ```
 
 ## Functionality
+$$\color{#0EA5E9}Core \space \color{#14B8A6}Features$$
 
 ### Database Discovery
 - `zotero-sqlite-tool locate-db`: detect candidate `zotero.sqlite` paths and show the selected default path.
@@ -69,6 +70,7 @@ zotero-sqlite-tool --help
 - The client only permits `SELECT` and `WITH` queries internally.
 
 ## Database Resolution
+$$\color{#0EA5E9}Database \space \color{#14B8A6}Resolution$$
 
 The CLI resolves `zotero.sqlite` in this order:
 
@@ -80,6 +82,7 @@ The CLI resolves `zotero.sqlite` in this order:
 6. `~/.var/app/org.zotero.Zotero/data/Zotero/zotero.sqlite`
 
 ## Quick Start
+$$\color{#0EA5E9}Quick \space \color{#14B8A6}Start$$
 
 ```bash
 uv run zotero-sqlite-tool locate-db
@@ -94,18 +97,10 @@ uv run zotero-sqlite-tool search-items \
 uv run zotero-sqlite-tool pdf-positions --item-key "QWERTY12"
 ```
 
-## Development
-
-```bash
-uv run ruff format src tests zotero-client-sqlite/scripts
-uv run ruff check src tests zotero-client-sqlite/scripts
-uv run mypy
-uv run pytest
-```
-
 Arch packaging notes live in [AUR_VALIDATION.md](AUR_VALIDATION.md).
 
 ## Credits
+$$\color{#0EA5E9}Project \space \color{#14B8A6}Credits$$
 
 This tool is built for the local Zotero client database and is not affiliated with Zotero.
 
