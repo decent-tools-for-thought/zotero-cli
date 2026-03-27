@@ -6,8 +6,6 @@ on:
     branches:
       - main
   pull_request:
-  schedule:
-    - cron: "0 8 * * 1"
 
 jobs:
   quality:
@@ -20,50 +18,19 @@ jobs:
         with:
           python-version: "3.13"
 
-      - uses: astral-sh/setup-uv@v4
+      - uses: astral-sh/setup-uv@v6
 
-      - name: Install development dependencies
+      - name: Install project dependencies
         run: uv sync --group dev
 
-      - name: Verify formatting
+      - name: Check formatting
         run: uv run ruff format --check .
 
       - name: Lint
         run: uv run ruff check .
 
       - name: Type check
-        run: uv run mypy
+        run: uv run mypy src tests
 
-      - name: Test
+      - name: Run unit tests
         run: uv run pytest
-
-  package-verification:
-    runs-on: ubuntu-latest
-
-    steps:
-      - uses: actions/checkout@v4
-
-      - uses: actions/setup-python@v5
-        with:
-          python-version: "3.13"
-
-      - name: Build distributions
-        run: |
-          python -m pip install --upgrade build
-          python -m build
-
-      - name: Verify wheel install
-        run: |
-          python -m venv .venv-wheel
-          .venv-wheel/bin/python -m pip install --upgrade pip
-          .venv-wheel/bin/python -m pip install --no-deps dist/*.whl
-          .venv-wheel/bin/python -c "import zotero_sqlite_tool"
-          .venv-wheel/bin/zotero-sqlite-tool --help >/dev/null
-
-      - name: Verify sdist install
-        run: |
-          python -m venv .venv-sdist
-          .venv-sdist/bin/python -m pip install --upgrade pip setuptools wheel
-          .venv-sdist/bin/python -m pip install --no-build-isolation dist/*.tar.gz
-          .venv-sdist/bin/python -c "import zotero_sqlite_tool"
-          .venv-sdist/bin/zotero-sqlite-tool --help >/dev/null

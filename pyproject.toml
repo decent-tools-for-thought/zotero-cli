@@ -8,7 +8,7 @@ version = "0.1.0"
 description = "Read-only CLI for querying a local Zotero SQLite database"
 readme = "README.md"
 license = "0BSD"
-requires-python = ">=3.11"
+requires-python = ">=3.13"
 
 [dependency-groups]
 dev = [
@@ -32,7 +32,7 @@ where = ["src"]
 [tool.ruff]
 extend-exclude = ["packaging"]
 line-length = 100
-target-version = "py311"
+target-version = "py313"
 
 [tool.ruff.lint]
 select = [
@@ -42,7 +42,7 @@ select = [
 ]
 
 [tool.mypy]
-python_version = "3.11"
+python_version = "3.13"
 files = ["src/zotero_sqlite_tool", "tests"]
 strict = true
 
