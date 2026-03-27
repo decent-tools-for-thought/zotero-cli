@@ -16,7 +16,7 @@ Read-only command-line client for locating, browsing, and querying a local Zoter
 ## Map
 - [Install](#install)
 - [Functionality](#functionality)
-- [Database Resolution](#database-resolution)
+- [Configuration](#configuration)
 - [Quick Start](#quick-start)
 - [Credits](#credits)
 
@@ -67,7 +67,7 @@ $$\color{#0EA5E9}Read \space \color{#14B8A6}Safety$$
 - The client enables SQLite `query_only`.
 - The client only permits `SELECT` and `WITH` queries internally.
 
-## Database Resolution
+## Configuration
 $$\color{#0EA5E9}Lookup \space \color{#14B8A6}Order$$
 
 The CLI resolves `zotero.sqlite` in this order:
